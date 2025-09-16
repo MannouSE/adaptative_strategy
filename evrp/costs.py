@@ -93,4 +93,6 @@ def full_cost(solution, problem: Problem) -> float:
     feasible, e_cost, w_cost = check_energy_feasibility(solution, problem)
     penalty = 0.0 if feasible else BIG_M_PENALTY
     penalty += CAP_PENALTY * capacity_violation(solution, problem)
+    cost_total= travel + e_cost + w_cost + penalty
+    #print("cost total upper level",cost_total)
     return travel + e_cost + w_cost + penalty

@@ -19,6 +19,7 @@ def initialize_algorithm(problem: Problem, pop_size: int, eps_start: float, rng)
     centroids = []
     best_cost = float('inf'); best_sol = None
     Q = {}; state = (0, 'start'); eps = eps_start
+    print(sol)
     return P, elite, centroids, best_cost, best_sol, Q, state, eps
 
 def main_optimization(problem: Problem, cfg: SimpleNamespace, rng: random.Random):

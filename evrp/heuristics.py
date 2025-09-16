@@ -10,6 +10,7 @@ def solve_ll_exact(sol_or_route, problem, rng=None):
     Works on a single route [n0,...,nm] OR a full solution [[...], [...], ...].
     Returns (ok, same_input, ll_cost_total).
     """
+    print(sol_or_route)
     D = problem.distance_matrix
     BMAX = problem.energy_capacity
     alpha = problem.energy_consumption           # kWh/km
