@@ -1,11 +1,8 @@
-# (you can remove the sys.path insert now)
-
 from evrp.costs import calculate_travel_cost, full_cost
 import argparse, random
 from types import SimpleNamespace
 from evrp.data import load_evrp, apply_defaults
 from evrp.optimize import main_optimization
-from evrp.generators import decorate_with_pevrp_params
 
 def describe_solution(problem, sol):
     print("Routes:")
@@ -14,15 +11,7 @@ def describe_solution(problem, sol):
     print("Travel distance:", calculate_travel_cost(sol, problem))
     print("Total cost     :", full_cost(sol, problem))
 
-
 def main():
-    # assumes you already have these imports at the top of the file:
-    # import argparse, random
-    # from types import SimpleNamespace
-    # from evrp.data import load_evrp, apply_defaults
-    # from evrp.optimize import main_optimization
-    # from evrp.generators import decorate_with_pevrp_params
-
     ap = argparse.ArgumentParser()
     ap.add_argument("--instance", required=True, help="Path to .evrp instance file")
     ap.add_argument("--max-gens", type=int, default=200)
@@ -34,16 +23,14 @@ def main():
     ap.add_argument("--alpha", type=float, default=0.1)
     ap.add_argument("--gamma", type=float, default=0.9)
     ap.add_argument("--seed", type=int, default=8)
-    # optional knobs you may want later:
     ap.add_argument("--waiting-cost", type=float, default=None, help="$/hour to monetize time (optional)")
     ap.add_argument("--energy-cost", type=float, default=None, help="fallback $/kWh (optional)")
     ap.add_argument("--charge-rate", type=float, default=None, help="fallback kW if a station lacks a rate (optional)")
     ap.add_argument("--speed", type=float, default=None, help="vehicle speed km/h (optional)")
     args = ap.parse_args()
 
-    # Resolve instance path (use helper if you have it)
     try:
-        instance_path = resolve_instance_path(args.instance)  # your helper, if defined
+        instance_path = resolve_instance_path(args.instance)
     except NameError:
         instance_path = args.instance
 
@@ -51,10 +38,15 @@ def main():
     problem = load_evrp(instance_path)
     problem = apply_defaults(problem)
 
-    # Decorate with pEVRP params (fixed 30 min charge, per-station rate/price/wait/detour)
-    problem = decorate_with_pevrp_params(problem, seed=args.seed, charge_rate_kW=200.0)
+    # Global constants (stations from data; no decoration/randomization)
+    problem.energy_capacity = 100.0  # Bmax
+    problem.energy_consumption = 1 / 6.0  # alpha (kWh/km)
+    problem.init_soc_ratio = 1.0
+    # Waiting cost per recharge event (wbk) — use per-station map or fallback:
+    problem.waiting_cost = 5.0  # used as per-visit default w_bk
+    problem.energy_cost = 4.22  # $/kWh default r_bk
 
-    # Allow CLI to override a few globals if provided
+    # Allow CLI overrides
     if args.waiting_cost is not None:
         problem.waiting_cost = args.waiting_cost
     if args.energy_cost is not None:
